@@ -92,7 +92,7 @@ $Here = if ($PSScriptRoot) { $PSScriptRoot } else { '' }
 $ForgeRepo = if ($Repo) { $Repo } else { 'https://github.com/RickSanchez88E/forge-kit.git' }
 
 # module -> (model id | pinned upstream) registry; keep in sync with modules/
-$DeepseekModel = 'deepseek/deepseek-v4.1-flash-1017'; $DeepseekPin = 'deepinfra/fp8'
+$DeepseekModel = 'deepseek/deepseek-v4.1-flash-1017'; $DeepseekPin = 'particle-ai/us'
 $QwenModel     = 'qwen/qwen3.8-max-0902';             $QwenPin     = 'alibaba'
 $MimoModel     = 'xiaomi/mimo-v2.6-pro';              $MimoPin     = 'deepinfra/fp8'
 

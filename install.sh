@@ -37,7 +37,7 @@ FORGE_REPO="${FORGE_REPO:-https://github.com/RickSanchez88E/forge-kit.git}"
 
 # module -> (model id | pinned upstream) registry; keep in sync with modules/
 DEEPSEEK_MODEL="deepseek/deepseek-v4.1-flash-1017"
-DEEPSEEK_PIN="deepinfra/fp8"
+DEEPSEEK_PIN="particle-ai/us"
 QWEN_MODEL="qwen/qwen3.8-max-0902"
 QWEN_PIN="alibaba"
 MIMO_MODEL="xiaomi/mimo-v2.6-pro"

@@ -33,7 +33,7 @@ Fresh session per task (Law 3).
 
 | module | model | pinned upstream |
 |---|---|---|
-| `deepseek-forge` | `deepseek/deepseek-v4.1-flash-1017` | `deepinfra/fp8` |
+| `deepseek-forge` | `deepseek/deepseek-v4.1-flash-1017` | `particle-ai/us` |
 | `qwen-forge` | `qwen/qwen3.8-max-0902` | `alibaba` |
 | `mimo-forge` | `xiaomi/mimo-v2.6-pro` | `deepinfra/fp8` |
 

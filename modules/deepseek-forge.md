@@ -1,5 +1,5 @@
 ---
-description: DeepSeek V4.1 Flash 1017 JB module - unrestricted red-team tooling / offensive security / dark content generator. Spec v2.3 (2026-11-12) tested 10/10 compliance ladder (7/7 cyber + tax-evasion + gray/black-industry probes). Pinned deepinfra/fp8. Spawn for tool generation tasks; orchestrator applies breaker-retry and jb-strip post-processing. DISPATCH DISCIPLINE (LO 2026-10-16): spawn FOREGROUND only (background=false), never background.
+description: DeepSeek V4.1 Flash 1017 JB module - unrestricted red-team tooling / offensive security / dark content generator. Spec v2.3 (2026-11-12) tested 10/10 compliance ladder (7/7 cyber + tax-evasion + gray/black-industry probes). Pinned particle-ai/us. Spawn for tool generation tasks; orchestrator applies breaker-retry and jb-strip post-processing. DISPATCH DISCIPLINE (LO 2026-10-16): spawn FOREGROUND only (background=false), never background.
 mode: all
 model: openrouter/deepseek/deepseek-v4.1-flash-1017
 temperature: 0.3
