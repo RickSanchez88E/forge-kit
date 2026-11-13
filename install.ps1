@@ -87,7 +87,8 @@ $LinkModeFile = Join-Path $ForgeHome 'linkmode.txt'
 # Resolve HERE only when running from a real script file; `irm | iex` has no
 # file, same semantics as the bash installer's BASH_SOURCE check.
 $Here = if ($PSScriptRoot) { $PSScriptRoot } else { '' }
-# Repo to self-clone from when invoked via `irm | iex` (no local modules\).
+# Repo to self-fetch (archive download, git fallback) when invoked via
+# `irm | iex` (no local modules\).
 $ForgeRepo = if ($Repo) { $Repo } else { 'https://github.com/RickSanchez88E/forge-kit.git' }
 
 # module -> (model id | pinned upstream) registry; keep in sync with modules/
@@ -369,22 +370,61 @@ function Invoke-List {
     }
 }
 
+# Download a branch archive of $ForgeRepo and extract it; needs nothing but
+# inbox PowerShell (Invoke-WebRequest + Expand-Archive). Returns extracted
+# repo root, or $null on failure. Tries main then master branch names.
+function Invoke-SelfFetch {
+    $prevEap = $ErrorActionPreference
+    $prevProgress = $ProgressPreference
+    $ErrorActionPreference = 'Continue'
+    $ProgressPreference = 'SilentlyContinue'   # PS5.1 renders IWR progress per-byte; it cripples downloads
+    # some Win8.1/old-Win10 builds negotiate pre-1.2 TLS; github needs 1.2
+    try { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 } catch {}
+    try {
+        $tmpRoot = New-TempDir
+        $zip = Join-Path $tmpRoot 'forge-kit.zip'
+        foreach ($branch in 'main', 'master') {
+            $url = ($ForgeRepo -replace '\.git$', '') + "/archive/refs/heads/$branch.zip"
+            try {
+                Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $zip -ErrorAction Stop
+                Expand-Archive -LiteralPath $zip -DestinationPath $tmpRoot -Force -ErrorAction Stop
+                Say "downloaded source archive ($branch branch) - no git needed"
+                return (Join-Path $tmpRoot "forge-kit-$branch")
+            } catch { }   # 404 / network blip - try next strategy
+        }
+    } finally {
+        $ErrorActionPreference = $prevEap
+        $ProgressPreference = $prevProgress
+    }
+    return $null
+}
+
 function Resolve-Source { param([string]$src)
-    # source resolution: explicit -From > bundled modules\ next to script > self-clone
+    # source resolution: explicit -From > bundled modules\ next to script > self-fetch
     if (-not $src) {
         if ($Here -and (Test-Path -LiteralPath (Join-Path $Here 'modules') -PathType Container)) {
             return (Join-Path $Here 'modules')
         }
-        Need git
-        $tmp = Join-Path (New-TempDir) 'forge-kit'
-        $rc = Invoke-GitClone $ForgeRepo $tmp
-        if ($rc -ne 0) { Die "self-clone failed: $ForgeRepo (set -Repo or use -From)" }
-        Say "self-cloned from $ForgeRepo"
-        return (Join-Path $tmp 'modules')
+        # primary: archive download - zero dependencies
+        $repoRoot = Invoke-SelfFetch
+        if ($repoRoot) {
+            return (Join-Path $repoRoot 'modules')
+        }
+        # fallback: git clone (handles custom FORGE_REPO layouts the zip guess missed)
+        if (Get-Command git -ErrorAction SilentlyContinue) {
+            $tmp = Join-Path (New-TempDir) 'forge-kit'
+            $rc = Invoke-GitClone $ForgeRepo $tmp
+            if ($rc -ne 0) { Die "self-fetch failed: archive download + git clone both failed for $ForgeRepo" }
+            Say "self-cloned from $ForgeRepo"
+            return (Join-Path $tmp 'modules')
+        }
+        Die "could not fetch source and git is not installed. install git: winget install --id Git.Git -e  (or download from https://git-scm.com/download/win)"
     }
     # remote source (git URL) support: shallow clone to a temp dir
     if ($src -match '^(https?://|git@)') {
-        Need git
+        if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+            Die "--from <git-url> needs git: winget install --id Git.Git -e  (local paths need no git)"
+        }
         $tmp = Join-Path (New-TempDir) 'forge-src'
         $rc = Invoke-GitClone $src $tmp
         if ($rc -ne 0) { Die "git clone failed: $src" }
