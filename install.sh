@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # forge-kit — one-line installer for the forge JB module family (opencode)
 #
-#   curl -fsSL <repo>/install.sh | bash              # install / refresh (idempotent)
+#   curl -fsSL <repo>/install.sh | bash                  # install / refresh (idempotent)
 #   curl -fsSL <repo>/install.sh | bash -s -- --update   # hot-update modules only
 #   curl -fsSL <repo>/install.sh | bash -s -- --uninstall
+#
+# Windows (PowerShell — native installer, same layout & flags):
+#   irm <repo>/install.ps1 | iex                         # install / refresh
+#   & ([scriptblock]::Create((irm <repo>/install.ps1))) -Update
+#   & ([scriptblock]::Create((irm <repo>/install.ps1))) -List
+#   ...or double-click install.cmd (forwards flags, bypasses exec policy)
 #
 # Local: ./install.sh --from ./modules
 #
@@ -43,6 +49,15 @@ warn() { printf '\033[1;33m[forge]\033[0m %s\n' "$*"; }
 die()  { printf '\033[1;31m[forge]\033[0m %s\n' "$*" >&2; exit 1; }
 
 need() { command -v "$1" >/dev/null 2>&1 || die "missing dependency: $1"; }
+
+# Git Bash / MSYS / Cygwin: bash path is best-effort (symlink + python3 quirks).
+# Native Windows installer lives in install.ps1 / install.cmd — point there.
+case "$(uname -s 2>/dev/null)" in
+  MINGW*|MSYS*|CYGWIN*)
+    warn "Git Bash/MSYS detected - this bash path is best-effort on Windows."
+    warn "native installer (PowerShell): irm <repo>/install.ps1 | iex   (or run install.cmd)"
+    ;;
+esac
 
 backup() { # backup file once per second-granularity
   local f="$1" ts
@@ -226,7 +241,7 @@ while [ $# -gt 0 ]; do
     --purge)     ACTION="uninstall-purge" ;;
     --list)      ACTION="list" ;;
     --from)      shift; SRC="${1:?--from needs a value}" ;;
-    -h|--help)   sed -n '2,15p' "$0"; exit 0 ;;
+    -h|--help)   sed -n '2,21p' "$0"; exit 0 ;;
     *) die "unknown flag: $1" ;;
   esac
   shift
